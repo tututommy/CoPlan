@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline';">
+  <title>CoPlan</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+
+  <div class="app-layout">
+    <!-- Primary Sidebar (always visible) -->
+    <nav class="sidebar-primary">
+      <div class="sidebar-top">
+        <button class="nav-icon active" data-i18n-title="navTasks" id="navTasksBtn">&#xF246;</button>
+        <button class="nav-icon" data-i18n-title="navCalendar" id="navCalendarBtn">&#xE787;</button>
+      </div>
+      <div class="sidebar-bottom">
+        <button class="nav-icon" data-i18n-title="navSettings" id="settingsBtn">&#xE713;</button>
+      </div>
+    </nav>
+
+    <!-- Task Layout (default visible) -->
+    <div class="task-layout" id="taskLayout">
+      <!-- Secondary Sidebar -->
+      <nav class="sidebar-secondary acrylic">
+        <div class="sidebar-header">
+          <h1 class="logo">CoPlan</h1>
+        </div>
+
+        <div class="list-section">
+          <div class="list-item active" data-list="inbox">
+            <span class="icon">&#xE7B8;</span>
+            <span class="label" data-i18n="inbox">Inbox</span>
+            <span class="count" id="count-inbox">0</span>
+          </div>
+          <div class="list-item" data-list="today">
+            <span class="icon">&#xE8BF;</span>
+            <span class="label" data-i18n="today">Today</span>
+            <span class="count" id="count-today">0</span>
+          </div>
+          <div class="list-item" data-list="tomorrow">
+            <span class="icon">&#xE700;</span>
+            <span class="label" data-i18n="tomorrow">Tomorrow</span>
+            <span class="count" id="count-tomorrow">0</span>
+          </div>
+          <div class="list-item" data-list="next7">
+            <span class="icon">&#xE787;</span>
+            <span class="label" data-i18n="next7">Next 7 Days</span>
+            <span class="count" id="count-next7">0</span>
+          </div>
+        </div>
+
+        <div class="list-divider"></div>
+
+        <div class="list-section">
+          <div class="section-title" style="display:flex; justify-content:space-between; align-items:center;">
+            <span data-i18n="listsHeader">Lists</span>
+            <button id="addListBtn" class="btn-icon" style="padding:2px 6px;" title="Add List">&#xE710;</button>
+          </div>
+          <div id="custom-lists-container">
+            <!-- Dynamically populated custom lists -->
+          </div>
+        </div>
+
+        <div class="list-divider"></div>
+
+        <div class="list-section" style="margin-top:auto; padding-bottom: 20px;">
+          <div class="list-item" data-list="completed">
+            <span class="icon">&#xE73A;</span>
+            <span class="label" data-i18n="completed">已完成</span>
+          </div>
+          <div class="list-item" data-list="trash">
+            <span class="icon">&#xE74D;</span>
+            <span class="label" data-i18n="trash">垃圾桶</span>
+          </div>
+        </div>
+      </nav>
+
+      <!-- Main Task List View -->
+      <main class="task-view">
+        <div class="task-view-header" style="display:flex; justify-content:space-between; align-items:center;">
+          <div style="display:flex; align-items:center; gap: 15px;">
+            <h2 id="current-list-title" class="view-title" data-i18n="inbox">Inbox</h2>
+            <div style="position:relative;">
+              <span style="position:absolute; left:8px; top:50%; transform:translateY(-50%); color:var(--text-tertiary); font-family:var(--font-icons); font-size: 14px;">&#xE721;</span>
+              <input type="text" id="sectionSearchInput" data-i18n="searchPlaceholder" data-i18n-placeholder="searchPlaceholder" placeholder="Search tasks..." style="background: var(--bg-control); border: 1px solid var(--border); color: var(--text-primary); border-radius: 4px; padding: 4px 8px 4px 28px; font-size: 13px; width: 220px;">
+            </div>
+          </div>
+          <div class="view-actions">
+            <button class="btn-icon" id="aiAutoScheduleBtn" data-i18n="aiScheduleBtn" style="color: var(--accent);">&#xE81C; AI Auto Schedule</button>
+          </div>
+        </div>
+
+        <!-- Quick Add -->
+        <div class="task-add-bar">
+          <span class="add-icon">&#xE710;</span>
+          <input type="text" id="newTaskInput" data-i18n-placeholder="newTaskPlaceholder" placeholder="What needs to be done?">
+          <input type="text" id="newTaskEst" data-i18n-placeholder="newTaskEstPlaceholder" placeholder="Time (e.g. 30m)" class="meta-input" style="width:90px;">
+          <select id="newTaskPriority" class="meta-select">
+            <option value="Medium" data-i18n="priorityMed">Med</option>
+            <option value="High" data-i18n="priorityHigh">High</option>
+            <option value="Low" data-i18n="priorityLow">Low</option>
+          </select>
+          <input type="date" id="newTaskDueDate" class="meta-input">
+          <button id="aiParseBtn" class="btn-icon" style="color:var(--accent)" data-i18n-title="aiParseBtn" title="AI Parse">&#xE81C;</button>
+          <button id="addTaskBtn" class="btn-primary" data-i18n="addTaskBtn">Add</button>
+        </div>
+
+        <!-- Task List -->
+        <div class="task-scroll-area">
+          <div class="task-list" id="main-task-list"></div>
+        </div>
+      </main>
+    </div>
+
+    <!-- Calendar Page (hidden by default, full-screen minus primary sidebar) -->
+    <div class="calendar-page" id="calendarPage">
+      <div class="calendar-header">
+        <div class="cal-nav">
+          <div style="display:flex; align-items:center; gap:10px;">
+            <button class="btn-icon cal-nav-btn" id="calPrevBtn">&#xE76B;</button>
+            <h2 class="view-title" id="calendar-title">April 2026</h2>
+            <button class="btn-icon cal-nav-btn" id="calNextBtn">&#xE76C;</button>
+            <button class="btn-segment" id="calTodayBtn" data-i18n="calTodayBtn" style="font-size:0.8rem; padding:4px 12px;">Today</button>
+          </div>
+          <div class="cal-switcher">
+            <button class="btn-segment active" data-view="day" data-i18n="viewDay">Day</button>
+            <button class="btn-segment" data-view="week" data-i18n="viewWeek">Week</button>
+            <button class="btn-segment" data-view="month" data-i18n="viewMonth">Month</button>
+            <button class="btn-segment" data-view="schedule" data-i18n="viewSchedule">Schedule</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="calendar-body">
+        <div id="calendar-grid"></div>
+      </div>
+    </div>
+
+  </div><!-- /.app-layout -->
+
+  <!-- ── Modals ─────────────────────────────────────────────────────────── -->
+
+  <!-- Settings Modal -->
+  <div class="modal-overlay" id="settingsModal">
+    <div class="modal glass">
+      <div class="modal-header" data-i18n="settingsHeader">设置</div>
+
+      <div class="form-group">
+        <label for="appTheme" data-i18n="appThemeLabel">外观主题</label>
+        <select id="appTheme">
+          <option value="system" data-i18n="themeSystem">跟随系统</option>
+          <option value="dark" data-i18n="themeDark">深色模式</option>
+          <option value="light" data-i18n="themeLight">浅色模式</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="appLang" data-i18n="appLangLabel">显示语言</label>
+        <select id="appLang">
+          <option value="zh">中文 (简体)</option>
+          <option value="en">English</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="aiBaseUrl" data-i18n="aiBaseUrlLabel">API 接口地址 (Base URL)</label>
+        <input type="url" id="aiBaseUrl" data-i18n-placeholder="aiBaseUrlLabel" placeholder="例如: https://api.openai.com/v1" style="width:100%;box-sizing:border-box;">
+      </div>
+      <div class="form-group">
+        <label for="aiModel" data-i18n="aiModelLabel">模型名称 (Model)</label>
+        <input type="text" id="aiModel" placeholder="例如: gpt-4o, deepseek-chat" style="width:100%;box-sizing:border-box;">
+      </div>
+      <div class="form-group">
+        <label for="aiApiKey" data-i18n="aiApiKeyLabel">API 密钥 (Key)</label>
+        <input type="password" id="aiApiKey" data-i18n-placeholder="aiApiKeyLabel" placeholder="输入您的 API Key" style="width:100%;box-sizing:border-box;">
+      </div>
+      <div class="form-group">
+        <label data-i18n="workHoursLabel">工作时间设置 (例如: 09:00-12:00, 13:00-18:00)</label>
+        <div style="display:flex; gap:0.5rem; align-items:center; margin-bottom:0.5rem;">
+          <input type="time" id="whStart" value="09:00">
+          <span>-</span>
+          <input type="time" id="whEnd" value="18:00">
+          <button id="addWorkHourBtn" class="btn-primary" data-i18n="btnAdd" style="padding:4px 10px;">添加</button>
+        </div>
+        <div id="workHoursList" style="display:flex; flex-direction:column; gap:4px; max-height:80px; overflow-y:auto; background:rgba(0,0,0,0.2); padding:4px; border-radius:4px;"></div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-outline" id="closeSettingsBtn" data-i18n="btnCancel">取消</button>
+        <button class="btn-primary" id="saveSettingsBtn" data-i18n="btnSave">保存更改</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- List Edit Modal -->
+  <div class="modal-overlay" id="listModal">
+    <div class="modal glass">
+      <div class="modal-header" id="listModalTitle" data-i18n="listModalAdd">新建清单</div>
+      <div class="form-group">
+        <label for="listNameInput" data-i18n="listNameLabel">清单名称</label>
+        <input type="text" id="listNameInput" data-i18n-placeholder="listNamePlaceholder" placeholder="例如：工作项目" style="width:100%;box-sizing:border-box;">
+      </div>
+      <div class="form-group">
+        <label for="listColorInput" data-i18n="listColorLabel">主题颜色</label>
+        <input type="color" id="listColorInput" value="#60CDFF" style="width:100%;height:40px;border:none;padding:0;background:transparent;">
+      </div>
+      <div class="modal-actions" style="justify-content:space-between;">
+        <button class="btn-icon" id="deleteListBtn" data-i18n="btnDelete" style="color:var(--danger);display:none;">&#xE74D; 删除</button>
+        <div style="display:flex;gap:0.5rem;">
+          <button class="btn-outline" id="closeListBtn" data-i18n="btnCancel">取消</button>
+          <button class="btn-primary" id="saveListBtn" data-i18n="btnSaveList">保存清单</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Task Schedule Edit Modal -->
+  <div class="modal-overlay" id="scheduleModal">
+    <div class="modal glass">
+      <div class="modal-header" data-i18n="editScheduleHeader">编辑排期</div>
+      <div style="font-weight:600; margin-bottom:0.75rem; color:var(--text-primary); font-size:1rem;" id="scheduleTaskTitle"></div>
+ 
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.75rem;">
+        <div class="form-group">
+          <label data-i18n="priorityLabel">优先级</label>
+          <select id="schedPriority">
+            <option value="High" data-i18n="priorityHigh">高</option>
+            <option value="Medium" selected data-i18n="priorityMed">中</option>
+            <option value="Low" data-i18n="priorityLow">低</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label data-i18n="estTimeLabel">预估时长</label>
+          <input type="text" id="schedEstTime" placeholder="e.g. 30m, 1h30m">
+        </div>
+        <div class="form-group">
+          <label data-i18n="dueDateLabel">截止日期</label>
+          <input type="date" id="schedDueDate">
+        </div>
+        <div class="form-group">
+          <label data-i18n="startTimeLabel">开始时间</label>
+          <input type="datetime-local" id="schedStart">
+        </div>
+      </div>
+ 
+      <div class="modal-actions" style="justify-content:space-between; margin-top:1rem;">
+        <button class="btn-icon" id="clearScheduleBtn" data-i18n="btnClearSchedule" style="color:var(--danger);">&#xE74D; 清除排期</button>
+        <div style="display:flex;gap:0.5rem;">
+          <button class="btn-outline" id="closeScheduleBtn" data-i18n="btnCancel">取消</button>
+          <button class="btn-primary" id="saveScheduleBtn" data-i18n="btnSaveSchedule">✓ 保存</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Calendar Quick-Create Task Modal -->
+  <div class="modal-overlay" id="calNewTaskModal">
+    <div class="modal glass">
+      <div class="modal-header" data-i18n="calCreateHeader">在日历中创建任务</div>
+ 
+      <div class="form-group">
+        <label data-i18n="taskNameLabel">任务名称 <span style="color:var(--danger)">*</span></label>
+        <input type="text" id="calTaskTitle" data-i18n-placeholder="taskNameLabel" placeholder="任务名称" style="width:100%;box-sizing:border-box;">
+      </div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.75rem;">
+        <div class="form-group">
+          <label data-i18n="priorityLabel">优先级</label>
+          <select id="calTaskPriority">
+            <option value="High" data-i18n="priorityHigh">高</option>
+            <option value="Medium" selected data-i18n="priorityMed">中</option>
+            <option value="Low" data-i18n="priorityLow">低</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label data-i18n="estTimeLabel">预估时长</label>
+          <input type="text" id="calTaskEst" placeholder="e.g. 30m, 1h">
+        </div>
+        <div class="form-group">
+          <label data-i18n="dueDateLabel">截止日期</label>
+          <input type="date" id="calTaskDue">
+        </div>
+        <div class="form-group">
+          <label data-i18n="startTimeLabel">开始时间</label>
+          <input type="datetime-local" id="calTaskStart">
+        </div>
+      </div>
+      <div style="display:flex; gap:0.5rem; align-items:center; margin-top:0.5rem;">
+        <button id="calAiParseBtn" class="btn-icon" style="color:var(--accent)" data-i18n="calAiParseBtn">&#xE81C; AI 解析</button>
+        <span id="calAiStatus" style="font-size:0.8rem; color:var(--text-secondary);"></span>
+      </div>
+      <div class="modal-actions" style="margin-top:1rem;">
+        <button class="btn-outline" id="closeCalNewTaskBtn" data-i18n="btnCancel">取消</button>
+        <button class="btn-primary" id="saveCalNewTaskBtn" data-i18n="calCreateBtn">创建任务</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="./renderer.js"></script>
+</body>
+</html>
