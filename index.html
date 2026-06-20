@@ -15,6 +15,9 @@
       <div class="sidebar-top">
         <button class="nav-icon active" data-i18n-title="navTasks" id="navTasksBtn">&#xF246;</button>
         <button class="nav-icon" data-i18n-title="navCalendar" id="navCalendarBtn">&#xE787;</button>
+        <button class="nav-icon" data-i18n-title="navQuadrants" id="navQuadrantsBtn">&#xE80A;</button>
+        <button class="nav-icon" data-i18n-title="navTimer" id="navTimerBtn">&#xE91E;</button>
+        <button class="nav-icon" data-i18n-title="navSummary" id="navSummaryBtn">&#xE8A5;</button>
       </div>
       <div class="sidebar-bottom">
         <button class="nav-icon" data-i18n-title="navSettings" id="settingsBtn">&#xE713;</button>
@@ -152,6 +155,144 @@
         </div>
         <div class="calendar-sidebar-list" id="calendar-sidebar-list" style="flex: 1; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 8px;">
           <!-- Dynamically populated unscheduled tasks -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Quadrants Page -->
+    <div class="quadrants-page" id="quadrantsPage">
+      <div class="quadrants-header">
+        <h2 class="view-title" data-i18n="quadrantsHeader">四象限时间管理</h2>
+        <div class="view-actions">
+          <button class="btn-icon" id="aiQuadrantBtn" style="color: var(--accent);"><span class="icon">&#xE81C;</span> <span data-i18n="aiQuadrantBtnText">AI 智能分配</span></button>
+        </div>
+      </div>
+      <div class="quadrants-grid">
+        <!-- Q1: 重要且紧急 -->
+        <div class="quadrant-card" id="quadrant-1" data-quadrant="1">
+          <div class="quadrant-title" style="border-left-color: var(--danger);">
+            <span data-i18n="q1Title">重要且紧急 (Q1)</span>
+            <span class="quadrant-tip" data-i18n="q1Tip">立即亲自去做</span>
+          </div>
+          <div class="quadrant-task-list" id="q1-task-list"></div>
+        </div>
+        <!-- Q2: 重要但不紧急 -->
+        <div class="quadrant-card" id="quadrant-2" data-quadrant="2">
+          <div class="quadrant-title" style="border-left-color: var(--warning);">
+            <span data-i18n="q2Title">重要但不紧急 (Q2)</span>
+            <span class="quadrant-tip" data-i18n="q2Tip">计划并按时去做</span>
+          </div>
+          <div class="quadrant-task-list" id="q2-task-list"></div>
+        </div>
+        <!-- Q3: 不重要且紧急 -->
+        <div class="quadrant-card" id="quadrant-3" data-quadrant="3">
+          <div class="quadrant-title" style="border-left-color: var(--accent);">
+            <span data-i18n="q3Title">不重要且紧急 (Q3)</span>
+            <span class="quadrant-tip" data-i18n="q3Tip">授权或合理推迟</span>
+          </div>
+          <div class="quadrant-task-list" id="q3-task-list"></div>
+        </div>
+        <!-- Q4: 不重要且不紧急 -->
+        <div class="quadrant-card" id="quadrant-4" data-quadrant="4">
+          <div class="quadrant-title" style="border-left-color: var(--text-tertiary);">
+            <span data-i18n="q4Title">不重要且不紧急 (Q4)</span>
+            <span class="quadrant-tip" data-i18n="q4Tip">减少或尽量不做</span>
+          </div>
+          <div class="quadrant-task-list" id="q4-task-list"></div>
+        </div>
+      </div>
+      <!-- AI advice panel -->
+      <div class="quadrants-ai-advice" id="quadrantsAiAdvice">
+        <span class="icon">&#xE81C;</span>
+        <div class="advice-content" id="quadrantsAiAdviceContent" data-i18n="quadrantsAiAdviceInit">
+          点击上方“AI 智能分配”分析并规划您的四象限任务。
+        </div>
+      </div>
+    </div>
+
+    <!-- Timer Page -->
+    <div class="timer-page" id="timerPage">
+      <div class="timer-main-container">
+        <div class="timer-card glass">
+          <!-- Task Selection -->
+          <div class="timer-task-select-container">
+            <label for="timerTaskSelect" data-i18n="timerTaskSelectLabel">选择当前专注的任务：</label>
+            <select id="timerTaskSelect">
+              <option value="" data-i18n="timerTaskSelectNone">-- 自主专注 (无关联任务) --</option>
+            </select>
+          </div>
+
+          <!-- Circular progress & time display -->
+          <div class="timer-visual-container">
+            <svg class="progress-ring" width="260" height="260">
+              <circle class="progress-ring__circle-bg" stroke="var(--border-strong)" stroke-width="8" fill="transparent" r="110" cx="130" cy="130" />
+              <circle class="progress-ring__circle" stroke="var(--accent)" stroke-width="10" fill="transparent" r="110" cx="130" cy="130" />
+            </svg>
+            <div class="timer-display">
+              <span id="timerTimeText">25:00</span>
+              <span id="timerStatusLabel" style="font-size:0.8rem; color:var(--text-secondary); margin-top:4px;" data-i18n="timerStatusPomoWork">番茄钟工作期</span>
+            </div>
+          </div>
+
+          <!-- Controls -->
+          <div class="timer-controls">
+            <button class="btn-timer-mode active" id="timerModePomo" data-i18n="timerModePomo">番茄钟</button>
+            <button class="btn-timer-mode" id="timerModeStopwatch" data-i18n="timerModeStopwatch">正计时</button>
+          </div>
+          <div class="timer-buttons">
+            <button class="btn-primary" id="timerStartBtn"><span class="icon" style="margin-right:4px;">&#xE768;</span><span data-i18n="timerStart">开始</span></button>
+            <button class="btn-outline" id="timerPauseBtn" style="display:none;"><span class="icon" style="margin-right:4px;">&#xE769;</span><span data-i18n="timerPause">暂停</span></button>
+            <button class="btn-outline" id="timerResetBtn"><span class="icon" style="margin-right:4px;">&#xE72C;</span><span data-i18n="timerReset">重置</span></button>
+          </div>
+        </div>
+
+        <!-- AI Coach Panel -->
+        <div class="ai-coach-panel glass">
+          <div class="panel-header">
+            <span class="icon">&#xE81C;</span>
+            <h3 data-i18n="aiCoachTitle">AI 专注教练</h3>
+          </div>
+          <div class="panel-body" id="aiCoachContent">
+            <p style="color:var(--text-secondary);" data-i18n="aiCoachInit">选择一个任务以开启 AI 专注指导。您的教练会为您拆解任务步骤、提供防分心建议并实时激励您！</p>
+          </div>
+          <button class="btn-outline" id="aiCoachRefreshBtn" style="margin-top: 12px; display: none; width: 100%;"><span class="icon">&#xE81C;</span> <span data-i18n="aiCoachRefreshBtn">生成专注指引</span></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Summary Page -->
+    <div class="summary-page" id="summaryPage">
+      <div class="summary-header">
+        <h2 class="view-title" data-i18n="summaryHeader">工作复盘与 AI 摘要</h2>
+        <div class="view-actions">
+          <button class="btn-primary" id="aiGenerateSummaryBtn"><span class="icon">&#xE81C;</span> <span data-i18n="aiGenerateSummaryBtn">AI 智能复盘</span></button>
+          <button class="btn-outline" id="exportSummaryBtn"><span class="icon">&#xE8A5;</span> <span data-i18n="exportSummaryBtn">导出 Markdown</span></button>
+        </div>
+      </div>
+      <div class="summary-container">
+        <div class="summary-stats-grid">
+          <div class="stat-card glass">
+            <span class="stat-title" data-i18n="statTotalTasks">总任务数</span>
+            <span class="stat-value" id="statTotalTasks">0</span>
+          </div>
+          <div class="stat-card glass">
+            <span class="stat-title" data-i18n="statCompletedTasks">已完成数</span>
+            <span class="stat-value" id="statCompletedTasks" style="color:var(--success);">0</span>
+          </div>
+          <div class="stat-card glass">
+            <span class="stat-title" data-i18n="statFocusTime">累计专注时间</span>
+            <span class="stat-value" id="statFocusTime" style="color:var(--accent);">0m</span>
+          </div>
+          <div class="stat-card glass">
+            <span class="stat-title" data-i18n="statPomodoros">完成番茄数</span>
+            <span class="stat-value" id="statPomodoros">0</span>
+          </div>
+        </div>
+        <div class="summary-editor-wrapper glass">
+          <div class="editor-header">
+            <span data-i18n="summaryEditorHeader">摘要内容 (可自由编辑修改)</span>
+          </div>
+          <textarea id="summaryTextarea" data-i18n-placeholder="summaryTextareaPlaceholder" placeholder="点击上方“AI 智能复盘”自动整理今天的工作摘要，或者在此直接撰写..."></textarea>
         </div>
       </div>
     </div>
