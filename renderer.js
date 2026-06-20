@@ -32,7 +32,9 @@ const i18n = {
     alertDeleteTask: "Delete this task?", alertNoTasks: "No tasks in the current list to schedule.",
     confirmReschedule: "All tasks here are already scheduled.\nDo you want to clear their schedules and let AI reschedule them?",
     aiSchedulingStatus: "✨ Scheduling...", aiParsingStatus: "...", aiParseSuccess: "AI Parsed!",
-    searchTitle: "Search Results", deleteListConfirm: "Are you sure you want to delete this list and all its tasks?"
+    searchTitle: "Search Results", deleteListConfirm: "Are you sure you want to delete this list and all its tasks?",
+    unscheduledHeader: "Unscheduled Tasks", emptySchedule: "No scheduled tasks for this month", emptyUnscheduled: "No unscheduled tasks",
+    themeColorLabel: "Accent Theme Color"
   },
   zh: {
     navTasks: "任务", navCalendar: "日历", navSettings: "设置",
@@ -52,7 +54,9 @@ const i18n = {
     alertDeleteTask: "确定要删除这个任务吗？", alertNoTasks: "当前列表没有任务可排期。",
     confirmReschedule: "当前列表的所有任务都已排期。\n要清除现有排期并使用 AI 重新排程吗？",
     aiSchedulingStatus: "✨ 正在排期...", aiParsingStatus: "...", aiParseSuccess: "解析完成！",
-    searchTitle: "搜索结果", deleteListConfirm: "确定要删除此清单及其所有任务吗？"
+    searchTitle: "搜索结果", deleteListConfirm: "确定要删除此清单及其所有任务吗？",
+    unscheduledHeader: "待安排任务", emptySchedule: "本月无排期日程", emptyUnscheduled: "暂无待安排任务",
+    themeColorLabel: "个性化主题色"
   }
 };
 
@@ -83,6 +87,15 @@ const scheduleModal = document.getElementById('scheduleModal');
 const calNewTaskModal = document.getElementById('calNewTaskModal');
 const settingsModal = document.getElementById('settingsModal');
 
+function getContrastColor(hex) {
+  if (!hex || !hex.startsWith('#')) return '#000000';
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  const yiq = ((r * 299) + (g * 587) + (b * 114)) / 1000;
+  return (yiq >= 128) ? '#000000' : '#ffffff';
+}
+
 // ── Initialization ────────────────────────────────────────────────────────────
 
 async function init() {
@@ -98,6 +111,25 @@ async function init() {
   if (settings.customLists) customLists = settings.customLists;
   if (settings.workHours) workHours = settings.workHours;
   
+  // Apply Active Theme
+  if (settings.theme) {
+    if (settings.theme === 'dark') {
+      document.documentElement.setAttribute('data-theme', 'dark');
+    } else if (settings.theme === 'light') {
+      document.documentElement.setAttribute('data-theme', 'light');
+    } else {
+      document.documentElement.removeAttribute('data-theme');
+    }
+  }
+
+  // Apply Accent Theme Color
+  if (settings.themeColor) {
+    document.documentElement.style.setProperty('--accent', settings.themeColor);
+    document.documentElement.style.setProperty('--accent-hover', settings.themeColor + 'cc');
+    const textCol = getContrastColor(settings.themeColor);
+    document.documentElement.style.setProperty('--accent-text', textCol);
+  }
+
   // Set default dates
   newTaskDueDate.value = getTodayStr();
   
@@ -167,13 +199,42 @@ function setupListeners() {
   document.getElementById('aiParseBtn').onclick = aiParseFast;
   
   // Settings
-  document.getElementById('settingsBtn').onclick = () => {
+  document.getElementById('settingsBtn').onclick = async () => {
+      const settings = await window.api.getSettings();
+      document.getElementById('appTheme').value = settings.theme || 'system';
+      document.getElementById('appLang').value = settings.lang || 'zh';
+      document.getElementById('aiBaseUrl').value = settings.baseUrl || '';
+      document.getElementById('aiModel').value = settings.model || '';
+      document.getElementById('aiApiKey').value = settings.apiKey || '';
+      
+      const themeColorInput = document.getElementById('themeColor');
+      const themeColorText = document.getElementById('themeColorText');
+      if (themeColorInput && themeColorText) {
+        themeColorInput.value = settings.themeColor || '#60CDFF';
+        themeColorText.innerText = (settings.themeColor || '#60CDFF').toUpperCase();
+      }
+
       renderWorkHoursSettings();
       settingsModal.classList.add('active');
   };
   document.getElementById('closeSettingsBtn').onclick = () => settingsModal.classList.remove('active');
   document.getElementById('saveSettingsBtn').onclick = saveSettings;
   document.getElementById('addWorkHourBtn').onclick = addWorkHour;
+
+  const themeColorInput = document.getElementById('themeColor');
+  const themeColorText = document.getElementById('themeColorText');
+  if (themeColorInput && themeColorText) {
+    themeColorInput.addEventListener('input', (e) => {
+      themeColorText.innerText = e.target.value.toUpperCase();
+    });
+  }
+
+  const calSidebarSearch = document.getElementById('calSidebarSearch');
+  if (calSidebarSearch) {
+    calSidebarSearch.addEventListener('input', () => {
+      renderCalendarSidebar();
+    });
+  }
 }
 
 // ── Core Actions ──────────────────────────────────────────────────────────────
@@ -345,12 +406,101 @@ async function saveCalendarNewTask() {
   renderAll();
 }
 
+function getTaskColor(t) {
+  if (t.listId && t.listId !== 'inbox' && t.listId !== 'today' && t.listId !== 'tomorrow') {
+    const list = customLists.find(l => l.id === t.listId);
+    if (list) return list.color;
+  }
+  if (t.priority === 'High') return 'var(--danger)';
+  if (t.priority === 'Medium') return 'var(--warning)';
+  return 'var(--success)';
+}
+
+function renderCalendarSidebar() {
+  const sidebarList = document.getElementById('calendar-sidebar-list');
+  if (!sidebarList) return;
+  sidebarList.innerHTML = '';
+
+  const searchVal = document.getElementById('calSidebarSearch') ? document.getElementById('calSidebarSearch').value.toLowerCase() : '';
+
+  let unscheduled = tasks.filter(t => !t.scheduledStart && !t.completed && t.listId !== 'trash');
+
+  if (searchVal) {
+    unscheduled = unscheduled.filter(t => t.title.toLowerCase().includes(searchVal));
+  }
+
+  unscheduled.sort((a, b) => {
+    const priMap = { High: 3, Medium: 2, Low: 1 };
+    return priMap[b.priority] - priMap[a.priority];
+  });
+
+  if (unscheduled.length === 0) {
+    const emptyMsg = document.createElement('div');
+    emptyMsg.style.textAlign = 'center';
+    emptyMsg.style.padding = '20px 10px';
+    emptyMsg.style.color = 'var(--text-tertiary)';
+    emptyMsg.style.fontSize = '0.8rem';
+    emptyMsg.innerText = i18n[currentLang].emptyUnscheduled;
+    sidebarList.appendChild(emptyMsg);
+    return;
+  }
+
+  unscheduled.forEach(t => {
+    const card = document.createElement('div');
+    card.className = `cal-sidebar-card priority-${t.priority}`;
+    card.draggable = true;
+    card.dataset.id = t.id;
+
+    let listDot = '';
+    if (t.listId && t.listId !== 'inbox' && t.listId !== 'today' && t.listId !== 'tomorrow') {
+      const list = customLists.find(l => l.id === t.listId);
+      if (list) {
+        listDot = `<span style="color:${list.color}; font-size:10px; margin-right:4px;">●</span>`;
+      }
+    }
+
+    card.innerHTML = `
+      <div style="display:flex; align-items:flex-start; gap:6px; margin-bottom:4px;">
+        <span class="drag-handle" style="font-family:var(--font-icons); font-size:12px; color:var(--text-tertiary); cursor:grab; margin-top:2px;">&#xE8CB;</span>
+        <div style="flex:1;">
+          <div style="font-size:0.85rem; font-weight:500; color:var(--text-primary); line-height:1.2; overflow:hidden; text-overflow:ellipsis; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical;">
+            ${listDot}${t.title}
+          </div>
+        </div>
+      </div>
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-left:18px;">
+        <span class="badge" style="font-size:0.7rem; padding:1px 4px;">${t.estimatedTime}</span>
+        <button class="btn-icon" style="font-size:11px; padding:2px; color:var(--accent);" onclick="openScheduleModal(${t.id})">&#xE787;</button>
+      </div>
+    `;
+
+    card.ondragstart = (e) => {
+      draggedTaskId = t.id;
+      e.dataTransfer.setData('text/plain', t.id.toString());
+      e.dataTransfer.effectAllowed = 'move';
+      card.classList.add('dragging');
+    };
+
+    card.ondragend = () => {
+      card.classList.remove('dragging');
+      draggedTaskId = null;
+    };
+
+    card.ondblclick = () => {
+      openScheduleModal(t.id);
+    };
+
+    sidebarList.appendChild(card);
+  });
+}
+
 // ── Rendering ─────────────────────────────────────────────────────────────────
 
 function renderAll() {
   updateSidebarCounts();
   renderTaskList();
   renderCalendar();
+  renderCalendarSidebar();
 }
 
 function updateSidebarCounts() {
@@ -445,16 +595,191 @@ function renderTaskList() {
   });
 }
 
+function renderScheduleView() {
+  const container = document.createElement('div');
+  container.className = 'schedule-view-container';
+  container.style.width = '100%';
+  container.style.height = '100%';
+  container.style.overflowY = 'auto';
+  container.style.padding = '20px 24px';
+  container.style.display = 'flex';
+  container.style.flexDirection = 'column';
+  container.style.gap = '20px';
+
+  const targetYear = currentSelectedDate.getFullYear();
+  const targetMonth = currentSelectedDate.getMonth();
+  
+  const monthTasks = tasks.filter(t => {
+    if (!t.scheduledStart || t.listId === 'trash') return false;
+    const startDate = new Date(t.scheduledStart);
+    return startDate.getFullYear() === targetYear && startDate.getMonth() === targetMonth;
+  });
+
+  monthTasks.sort((a, b) => new Date(a.scheduledStart) - new Date(b.scheduledStart));
+
+  if (monthTasks.length === 0) {
+    const emptyMsg = document.createElement('div');
+    emptyMsg.className = 'schedule-empty-state';
+    emptyMsg.style.textAlign = 'center';
+    emptyMsg.style.padding = '40px';
+    emptyMsg.style.color = 'var(--text-secondary)';
+    emptyMsg.style.fontSize = '0.9rem';
+    emptyMsg.innerText = i18n[currentLang].emptySchedule;
+    container.appendChild(emptyMsg);
+    calendarGrid.appendChild(container);
+    return;
+  }
+
+  const groups = {};
+  monthTasks.forEach(t => {
+    const d = new Date(t.scheduledStart);
+    const dateStr = d.toLocaleDateString(currentLang === 'zh' ? 'zh-CN' : 'en-US', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+    if (!groups[dateStr]) groups[dateStr] = [];
+    groups[dateStr].push(t);
+  });
+
+  Object.keys(groups).forEach(dateStr => {
+    const groupDiv = document.createElement('div');
+    groupDiv.className = 'schedule-group';
+    groupDiv.style.display = 'flex';
+    groupDiv.style.flexDirection = 'column';
+    groupDiv.style.gap = '8px';
+
+    const groupHeader = document.createElement('div');
+    groupHeader.className = 'schedule-group-header';
+    groupHeader.style.fontSize = '0.9rem';
+    groupHeader.style.fontWeight = '600';
+    groupHeader.style.color = 'var(--accent)';
+    groupHeader.style.borderBottom = '1px solid var(--border)';
+    groupHeader.style.paddingBottom = '4px';
+    groupHeader.innerText = dateStr;
+    groupDiv.appendChild(groupHeader);
+
+    groups[dateStr].forEach(t => {
+      const item = document.createElement('div');
+      item.className = `schedule-item priority-${t.priority} ${t.completed ? 'completed' : ''}`;
+      
+      const startTime = new Date(t.scheduledStart).toLocaleTimeString(currentLang === 'zh' ? 'zh-CN' : 'en-US', {
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false
+      });
+      const endTime = t.scheduledEnd ? new Date(t.scheduledEnd).toLocaleTimeString(currentLang === 'zh' ? 'zh-CN' : 'en-US', {
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false
+      }) : '';
+
+      const color = getTaskColor(t);
+      item.style.borderLeft = `4px solid ${color}`;
+      item.onclick = () => openScheduleModal(t.id);
+
+      const leftSide = document.createElement('div');
+      leftSide.style.display = 'flex';
+      leftSide.style.alignItems = 'center';
+      leftSide.style.gap = '12px';
+
+      const checkbox = document.createElement('input');
+      checkbox.type = 'checkbox';
+      checkbox.checked = t.completed;
+      checkbox.style.cursor = 'pointer';
+      checkbox.onclick = async (e) => {
+        e.stopPropagation();
+        t.completed = checkbox.checked;
+        await window.api.saveTasks(tasks);
+        renderAll();
+      };
+      leftSide.appendChild(checkbox);
+
+      const info = document.createElement('div');
+      info.style.display = 'flex';
+      info.style.flexDirection = 'column';
+      
+      const titleSpan = document.createElement('span');
+      titleSpan.innerText = t.title;
+      titleSpan.style.fontSize = '0.9rem';
+      titleSpan.style.color = t.completed ? 'var(--text-tertiary)' : 'var(--text-primary)';
+      if (t.completed) titleSpan.style.textDecoration = 'line-through';
+      
+      const timeSpan = document.createElement('span');
+      timeSpan.innerText = `${startTime}${endTime ? ' - ' + endTime : ''}  (${t.estimatedTime})`;
+      timeSpan.style.fontSize = '0.75rem';
+      timeSpan.style.color = 'var(--text-secondary)';
+      
+      info.appendChild(titleSpan);
+      info.appendChild(timeSpan);
+      leftSide.appendChild(info);
+
+      item.appendChild(leftSide);
+      
+      const actions = document.createElement('div');
+      actions.className = 'schedule-actions';
+      actions.style.display = 'flex';
+      actions.style.gap = '8px';
+      
+      const delBtn = document.createElement('button');
+      delBtn.className = 'btn-icon';
+      delBtn.style.color = 'var(--danger)';
+      delBtn.innerHTML = '&#xE74D;';
+      delBtn.onclick = async (e) => {
+        e.stopPropagation();
+        await deleteTask(t.id);
+      };
+      
+      actions.appendChild(delBtn);
+      item.appendChild(actions);
+
+      groupDiv.appendChild(item);
+    });
+
+    container.appendChild(groupDiv);
+  });
+
+  calendarGrid.appendChild(container);
+}
+
 function renderCalendar() {
   const lang = currentLang === 'zh' ? 'zh-CN' : 'en-US';
-  calendarTitle.innerText = currentSelectedDate.toLocaleDateString(lang, { year: 'numeric', month: 'long' });
+  
+  if (calendarView === 'day') {
+    calendarTitle.innerText = currentSelectedDate.toLocaleDateString(lang, { year: 'numeric', month: 'long', day: 'numeric' });
+  } else if (calendarView === 'week') {
+    const start = new Date(currentSelectedDate);
+    start.setDate(start.getDate() - start.getDay());
+    const end = new Date(start);
+    end.setDate(end.getDate() + 6);
+    if (currentLang === 'zh') {
+      calendarTitle.innerText = `${start.getFullYear()}年${start.getMonth()+1}月${start.getDate()}日 - ${end.getMonth()+1}月${end.getDate()}日`;
+    } else {
+      const startStr = start.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      const endStr = end.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+      calendarTitle.innerText = `${startStr} - ${endStr}`;
+    }
+  } else {
+    calendarTitle.innerText = currentSelectedDate.toLocaleDateString(lang, { year: 'numeric', month: 'long' });
+  }
+
   calendarGrid.innerHTML = '';
 
   if (calendarView === 'month') {
     renderMonthView();
+  } else if (calendarView === 'schedule') {
+    renderScheduleView();
   } else {
     renderTimeGridView();
   }
+}
+
+function formatDuration(minutes) {
+  if (minutes < 60) return `${minutes}m`;
+  const hrs = Math.floor(minutes / 60);
+  const mins = minutes % 60;
+  return mins > 0 ? `${hrs}h${mins}m` : `${hrs}h`;
 }
 
 function renderTimeGridView() {
@@ -480,20 +805,37 @@ function renderTimeGridView() {
   const start = new Date(currentSelectedDate);
   if (calendarView === 'week') start.setDate(start.getDate() - start.getDay());
 
+  const today = getTodayStr();
+
   for(let i=0; i<daysCount; i++) {
     const d = new Date(start);
     d.setDate(d.getDate() + i);
     const dateStr = d.toISOString().split('T')[0];
     
+    const isToday = dateStr === today;
+    const isSelected = dateStr === currentSelectedDate.toISOString().split('T')[0];
+
     const col = document.createElement('div');
-    col.className = 'day-col';
+    col.className = `day-col ${isToday ? 'today' : ''} ${isSelected ? 'selected' : ''}`;
+    col.dataset.date = dateStr;
     col.innerHTML = `
-      <div class="day-col-header">
-        <div class="day-name">${d.toLocaleDateString(currentLang, {weekday: 'short'})}</div>
+      <div class="day-col-header ${isToday ? 'today-header' : ''}">
+        <div class="day-name">${d.toLocaleDateString(currentLang === 'zh' ? 'zh-CN' : 'en-US', {weekday: 'short'})}</div>
         <div class="day-number">${d.getDate()}</div>
       </div>
     `;
     
+    // Draw Current Time Indicator Line
+    if (isToday) {
+      const now = new Date();
+      const currentHour = now.getHours() + now.getMinutes() / 60;
+      const topPos = currentHour * 60 + 40; // +40 for header offset
+      const timeIndicator = document.createElement('div');
+      timeIndicator.className = 'current-time-indicator';
+      timeIndicator.style.top = `${topPos}px`;
+      col.appendChild(timeIndicator);
+    }
+
     // Render Non-Work Hours
     let currentMin = 0;
     const sortedWH = [...workHours].sort((a,b) => a.start.localeCompare(b.start));
@@ -513,35 +855,14 @@ function renderTimeGridView() {
       drawNonWorkBlock(col, currentMin, 24*60);
     }
     
-    // Manual Drag-to-Create Logic
+    // Manual Click-to-Create Logic (only when clicking column body itself)
     col.onclick = (e) => {
-      // If we clicked directly on the column and not a block
-      if (e.target === col) {
+      if (e.target === col || e.target.classList.contains('non-work-hour')) {
         const rect = col.getBoundingClientRect();
         const y = e.clientY - rect.top;
         const hour = Math.floor(y / 60);
         const timeStr = `${hour.toString().padStart(2,'0')}:00`;
         openCalNewTaskModal(dateStr, timeStr);
-      }
-    };
-
-    // Drop task to schedule
-    col.ondragover = (e) => e.preventDefault();
-    col.ondrop = async (e) => {
-      e.preventDefault();
-      const id = parseInt(e.dataTransfer.getData('text/plain'));
-      const rect = col.getBoundingClientRect();
-      const y = e.clientY - rect.top;
-      const hour = Math.floor(y / 60);
-      
-      const t = tasks.find(x => x.id === id);
-      if (t) {
-        const startDT = new Date(dateStr + 'T' + hour.toString().padStart(2,'0') + ':00');
-        t.scheduledStart = startDT.toISOString();
-        const duration = parseDuration(t.estimatedTime);
-        t.scheduledEnd = new Date(startDT.getTime() + duration * 60000).toISOString();
-        await window.api.saveTasks(tasks);
-        renderAll();
       }
     };
 
@@ -555,14 +876,102 @@ function renderTimeGridView() {
       const durationHours = (end - start) / 3600000;
       
       const block = document.createElement('div');
-      block.className = `time-block priority-${t.priority}`;
+      block.className = `time-block priority-${t.priority} ${t.completed ? 'completed' : ''}`;
       block.style.top = `${startHour * 60 + 40}px`; // +40 for header
       block.style.height = `${Math.max(30, durationHours * 60)}px`;
-      block.innerHTML = `<strong>${t.title}</strong><br><small>${t.estimatedTime}</small>`;
-      block.onclick = (e) => {
+      
+      // Override background and border color for custom lists
+      if (t.listId && t.listId !== 'inbox' && t.listId !== 'today' && t.listId !== 'tomorrow') {
+        const list = customLists.find(l => l.id === t.listId);
+        if (list && list.color) {
+          block.style.borderLeftColor = list.color;
+          if (list.color.startsWith('#')) {
+            block.style.backgroundColor = list.color + '26'; // 15% opacity hex-alpha
+          }
+        }
+      }
+
+      const titleHtml = t.completed ? `✓ <s>${t.title}</s>` : `<strong>${t.title}</strong>`;
+      block.innerHTML = `${titleHtml}<br><small>${t.estimatedTime}</small>`;
+      
+      // Add Resize Handle
+      const resizeHandle = document.createElement('div');
+      resizeHandle.className = 'time-block-resize-handle';
+      block.appendChild(resizeHandle);
+
+      // Mouse drag-to-move & drag-to-resize logic
+      block.onmousedown = (e) => {
+        if (e.button !== 0) return; // Left click only
+        
+        const isResize = e.target.classList.contains('time-block-resize-handle');
+        e.preventDefault();
         e.stopPropagation();
-        openScheduleModal(t.id);
+        
+        const startY = e.clientY;
+        const startTop = parseFloat(block.style.top);
+        const startHeight = parseFloat(block.style.height);
+        let currentTop = startTop;
+        let currentHeight = startHeight;
+        let dragged = false;
+        
+        const onMouseMove = (moveEvent) => {
+          const deltaY = moveEvent.clientY - startY;
+          if (Math.abs(deltaY) > 3) dragged = true;
+          
+          if (isResize) {
+            const newHeight = startHeight + deltaY;
+            // Snap to 15 mins (15px)
+            const snappedHeight = Math.round(newHeight / 15) * 15;
+            currentHeight = Math.max(15, snappedHeight);
+            block.style.height = `${currentHeight}px`;
+          } else {
+            const newTop = startTop + deltaY;
+            // Snap to 15 mins (15px) relative to header offset 40px
+            const gridTop = newTop - 40;
+            const snappedGridTop = Math.round(gridTop / 15) * 15;
+            const clampedGridTop = Math.max(0, Math.min(24 * 60 - currentHeight, snappedGridTop));
+            currentTop = clampedGridTop + 40;
+            block.style.top = `${currentTop}px`;
+          }
+        };
+        
+        const onMouseUp = async () => {
+          document.removeEventListener('mousemove', onMouseMove);
+          document.removeEventListener('mouseup', onMouseUp);
+          
+          if (!dragged) {
+            openScheduleModal(t.id);
+            return;
+          }
+          
+          if (isResize) {
+            const durationMin = currentHeight;
+            t.estimatedTime = formatDuration(durationMin);
+            const startDT = new Date(t.scheduledStart);
+            t.scheduledEnd = new Date(startDT.getTime() + durationMin * 60000).toISOString();
+          } else {
+            const startHour = (currentTop - 40) / 60;
+            const hour = Math.floor(startHour);
+            const minute = Math.round((startHour - hour) * 60);
+            
+            const origStart = new Date(t.scheduledStart);
+            const origEnd = t.scheduledEnd ? new Date(t.scheduledEnd) : new Date(origStart.getTime() + 3600000);
+            const durationMs = origEnd - origStart;
+            
+            const newStart = new Date(origStart);
+            newStart.setHours(hour, minute, 0, 0);
+            t.scheduledStart = newStart.toISOString();
+            t.scheduledEnd = new Date(newStart.getTime() + durationMs).toISOString();
+          }
+          
+          await window.api.saveTasks(tasks);
+          renderAll();
+        };
+        
+        document.addEventListener('mousemove', onMouseMove);
+        document.addEventListener('mouseup', onMouseUp);
       };
+
       col.appendChild(block);
     });
 
@@ -571,6 +980,65 @@ function renderTimeGridView() {
   
   container.appendChild(columns);
   calendarGrid.appendChild(container);
+
+  // Global Drop target on container to handle drops anywhere (including ruler / left boundary)
+  container.ondragover = (e) => e.preventDefault();
+  container.ondrop = async (e) => {
+    e.preventDefault();
+    const id = parseInt(e.dataTransfer.getData('text/plain'));
+    
+    const colList = container.querySelectorAll('.day-col');
+    if (colList.length === 0) return;
+    
+    // Find target column based on X coordinate
+    let targetCol = colList[0];
+    let closestDist = Infinity;
+    
+    colList.forEach(colEl => {
+      const rect = colEl.getBoundingClientRect();
+      if (e.clientX >= rect.left && e.clientX <= rect.right) {
+        targetCol = colEl;
+        closestDist = 0;
+      } else {
+        const dist = Math.min(Math.abs(e.clientX - rect.left), Math.abs(e.clientX - rect.right));
+        if (dist < closestDist) {
+          closestDist = dist;
+          targetCol = colEl;
+        }
+      }
+    });
+    
+    if (targetCol) {
+      const dateStr = targetCol.dataset.date;
+      const rect = targetCol.getBoundingClientRect();
+      const y = e.clientY - rect.top;
+      const hour = Math.floor(y / 60);
+      
+      const t = tasks.find(x => x.id === id);
+      if (t) {
+        const startDT = new Date(dateStr + 'T' + hour.toString().padStart(2,'0') + ':00');
+        t.scheduledStart = startDT.toISOString();
+        const duration = parseDuration(t.estimatedTime);
+        t.scheduledEnd = new Date(startDT.getTime() + duration * 60000).toISOString();
+        await window.api.saveTasks(tasks);
+        renderAll();
+      }
+    }
+  };
+
+  // Auto-scroll calendar-body to earliest work hour
+  let earliestWH = 8;
+  if (workHours && workHours.length > 0) {
+    const hours = workHours.map(wh => parseInt(wh.start.split(':')[0]));
+    earliestWH = Math.min(...hours);
+  }
+  const scrollPos = Math.max(0, earliestWH * 60 - 60);
+  const calendarBody = document.querySelector('.calendar-body');
+  if (calendarBody) {
+    setTimeout(() => {
+      calendarBody.scrollTop = scrollPos;
+    }, 50);
+  }
 }
 
 function renderMonthView() {
@@ -589,23 +1057,70 @@ function renderMonthView() {
   }
   
   const today = getTodayStr();
+  const selectedDateStr = currentSelectedDate.toISOString().split('T')[0];
+
   for (let i=1; i<=daysInMonth; i++) {
     const d = new Date(currentSelectedDate.getFullYear(), currentSelectedDate.getMonth(), i);
     const dateStr = d.toISOString().split('T')[0];
     
+    const isSelected = dateStr === selectedDateStr;
     const cell = document.createElement('div');
-    cell.className = `month-cell ${dateStr === today ? 'today' : ''}`;
+    cell.className = `month-cell ${dateStr === today ? 'today' : ''} ${isSelected ? 'selected' : ''}`;
     cell.innerHTML = `<div class="month-day-num">${i}</div>`;
     
-    const tasksToday = tasks.filter(t => t.scheduledStart && t.scheduledStart.startsWith(dateStr));
+    cell.onclick = (e) => {
+      if (e.target.classList.contains('month-cell') || e.target.classList.contains('month-day-num') || e.target.classList.contains('month-tasks')) {
+        currentSelectedDate = new Date(dateStr);
+        renderAll();
+      }
+    };
+
+    cell.ondblclick = (e) => {
+      if (e.target.classList.contains('month-cell') || e.target.classList.contains('month-day-num') || e.target.classList.contains('month-tasks')) {
+        currentSelectedDate = new Date(dateStr);
+        calendarView = 'day';
+        document.querySelectorAll('.cal-switcher .btn-segment').forEach(b => {
+          b.classList.toggle('active', b.dataset.view === 'day');
+        });
+        renderAll();
+      }
+    };
+
+    const tasksToday = tasks.filter(t => t.scheduledStart && t.scheduledStart.startsWith(dateStr) && t.listId !== 'trash');
     const tasksDir = document.createElement('div');
     tasksDir.className = 'month-tasks';
+    
     tasksToday.forEach(t => {
       const dot = document.createElement('div');
-      dot.className = 'month-task-dot';
-      dot.innerText = t.title;
+      dot.className = `month-task-dot priority-${t.priority} ${t.completed ? 'completed' : ''}`;
+      
+      const timeStr = new Date(t.scheduledStart).toLocaleTimeString(currentLang === 'zh' ? 'zh-CN' : 'en-US', {
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false
+      });
+      dot.innerText = `${timeStr} ${t.title}`;
+      
+      // Override colors for custom lists dynamically
+      if (t.listId && t.listId !== 'inbox' && t.listId !== 'today' && t.listId !== 'tomorrow') {
+        const list = customLists.find(l => l.id === t.listId);
+        if (list && list.color) {
+          dot.style.borderLeftColor = list.color;
+          if (list.color.startsWith('#')) {
+            dot.style.backgroundColor = list.color + '1a'; // 10% opacity hex-alpha
+          }
+        }
+      }
+
+      dot.style.cursor = 'pointer';
+      dot.onclick = (e) => {
+        e.stopPropagation();
+        openScheduleModal(t.id);
+      };
+
       tasksDir.appendChild(dot);
     });
+    
     cell.appendChild(tasksDir);
     container.appendChild(cell);
   }
@@ -779,6 +1294,7 @@ async function saveSettings() {
   const settings = {
     lang: document.getElementById('appLang').value,
     theme: document.getElementById('appTheme').value,
+    themeColor: document.getElementById('themeColor').value,
     baseUrl: document.getElementById('aiBaseUrl').value,
     apiKey: document.getElementById('aiApiKey').value,
     model: document.getElementById('aiModel').value,
