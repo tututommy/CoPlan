@@ -21,6 +21,15 @@
     "directories": {
       "output": "dist"
     },
+    "files": [
+      "**/*",
+      "!dist",
+      "!.git",
+      "!**/*.log",
+      "!settings.json",
+      "!tasks.json",
+      "!config.json"
+    ],
     "publish": [
       {
         "provider": "github",

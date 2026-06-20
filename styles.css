@@ -1004,7 +1004,6 @@ input, select { font-family: var(--font-family); }
 /* 1. Quadrants Page */
 .quadrants-page {
   padding: 24px 32px;
-  display: flex;
   flex-direction: column;
   height: 100vh;
   box-sizing: border-box;
@@ -1167,7 +1166,6 @@ input, select { font-family: var(--font-family); }
 /* 2. Timer Page */
 .timer-page {
   padding: 24px 32px;
-  display: flex;
   flex-direction: column;
   height: 100vh;
   box-sizing: border-box;
@@ -1342,7 +1340,6 @@ input, select { font-family: var(--font-family); }
 /* 3. Summary Page */
 .summary-page {
   padding: 24px 32px;
-  display: flex;
   flex-direction: column;
   height: 100vh;
   box-sizing: border-box;
