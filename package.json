@@ -9,7 +9,7 @@
     "publish": "electron-builder --publish always"
   },
   "keywords": [],
-  "author": "",
+  "author": "tututommy <tututommy@example.com>",
   "license": "ISC",
   "devDependencies": {
     "electron": "^41.2.0",
@@ -48,6 +48,7 @@
       ]
     },
     "linux": {
+      "maintainer": "tututommy <tututommy@example.com>",
       "target": [
         "AppImage",
         "deb"
