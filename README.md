@@ -68,27 +68,27 @@
 ## 界面预览 / Screenshots
 
 <p align="center">
-  <img src="screenshot_tasks.png" alt="CoPlan Task View" width="800" />
+  <img src="screenshots/screenshot_tasks.png" alt="CoPlan Task View" width="800" />
 </p>
 <p align="center"><i>任务视图 / Task View</i></p>
 
 <p align="center">
-  <img src="screenshot_calendar.png" alt="CoPlan Calendar View" width="800" />
+  <img src="screenshots/screenshot_calendar.png" alt="CoPlan Calendar View" width="800" />
 </p>
 <p align="center"><i>日历视图 / Calendar View</i></p>
 
 <p align="center">
-  <img src="screenshot_quadrants.png" alt="CoPlan Eisenhower Quadrants" width="800" />
+  <img src="screenshots/screenshot_quadrants.png" alt="CoPlan Eisenhower Quadrants" width="800" />
 </p>
 <p align="center"><i>四象限时间管理 / Eisenhower Quadrants</i></p>
 
 <p align="center">
-  <img src="screenshot_timer.png" alt="CoPlan Focus Timer" width="800" />
+  <img src="screenshots/screenshot_timer.png" alt="CoPlan Focus Timer" width="800" />
 </p>
 <p align="center"><i>专注时钟 / Focus Timer</i></p>
 
 <p align="center">
-  <img src="screenshot_summary.png" alt="CoPlan Daily Summary" width="800" />
+  <img src="screenshots/screenshot_summary.png" alt="CoPlan Daily Summary" width="800" />
 </p>
 <p align="center"><i>工作复盘与 AI 摘要 / Daily Review & AI Summary</i></p>
 
