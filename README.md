@@ -96,11 +96,19 @@
 
 ## 快速开始 / Quick Start
 
-### 环境要求 / Requirements
+### 直接下载安装（推荐） / Direct Download (Recommended)
+
+可以直接从 [GitHub Releases](https://github.com/tututommy/CoPlan/releases) 页面下载适用于您操作系统的最新版安装包直接安装使用。
+
+You can directly download the latest pre-compiled installers for your operating system from the [GitHub Releases](https://github.com/tututommy/CoPlan/releases) page to install and use.
+
+### 从源码运行（开发用） / Run from Source (For Development)
+
+#### 环境要求 / Requirements
 - [Node.js](https://nodejs.org/) >= 18
 - npm 或 yarn
 
-### 安装运行 / Installation
+#### 安装运行 / Installation
 
 ```bash
 # 克隆仓库
