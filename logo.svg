@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <defs>
+    <!-- Vibrant Blue-Cyan Gradient for the AI Star -->
+    <linearGradient id="blueGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00C2FF" />  <!-- Bright Cyan-Blue -->
+      <stop offset="100%" stop-color="#0052FF" /> <!-- Deep Tech Blue -->
+    </linearGradient>
+
+    <!-- Real Mask to cut a transparent gap through the calendar under the star -->
+    <mask id="calendarMask">
+      <!-- Keep everything visible by default -->
+      <rect x="0" y="0" width="512" height="512" fill="white" />
+      <!-- Cut out the star shape with an extended offset stroke (painted black) -->
+      <g transform="translate(370, 150) rotate(-15) translate(-370, -150)">
+        <path d="M 370,60 Q 395,125 460,150 Q 395,175 370,240 Q 345,175 280,150 Q 345,125 370,60 Z" 
+              fill="black" 
+              stroke="black" 
+              stroke-width="64" 
+              stroke-linejoin="round" />
+      </g>
+    </mask>
+  </defs>
+
+  <!-- Group containing the Calendar (subject to masking) -->
+  <g id="calendar-body" mask="url(#calendarMask)">
+    <!-- 1. Calendar Card Shadow (Offset by 12px) -->
+    <rect x="112" y="152" width="280" height="280" rx="48" fill="none" stroke="#002166" stroke-width="16" stroke-linejoin="round" opacity="0.15" />
+    <line x1="120" y1="222" x2="384" y2="222" stroke="#002166" stroke-width="14" stroke-linecap="round" opacity="0.15" />
+    <g fill="#002166" opacity="0.15">
+      <circle cx="192" cy="287" r="14" />
+      <circle cx="252" cy="287" r="14" />
+      <circle cx="312" cy="287" r="14" />
+      <circle cx="222" cy="357" r="14" />
+      <circle cx="282" cy="357" r="14" />
+    </g>
+
+    <!-- 2. Calendar Card Base (Vibrant tech blue outline, transparent inside) -->
+    <rect x="100" y="140" width="280" height="280" rx="48" fill="none" stroke="#0052FF" stroke-width="16" stroke-linejoin="round" />
+    <line x1="108" y1="210" x2="372" y2="210" stroke="#0052FF" stroke-width="14" stroke-linecap="round" />
+    <g fill="#0052FF">
+      <circle cx="180" cy="275" r="14" />
+      <circle cx="240" cy="275" r="14" />
+      <circle cx="300" cy="275" r="14" />
+      <circle cx="210" cy="345" r="14" />
+      <circle cx="270" cy="345" r="14" />
+    </g>
+  </g>
+
+  <!-- Rotated AI Star (Placed on top layer, casting shadow and offset by mask) -->
+  <g id="ai-star" transform="translate(370, 150) rotate(-15) translate(-370, -150)">
+    <!-- Star Solid Shadow (shifted by dx=8, dy=8 relative to the star) -->
+    <path d="M 378,68 Q 403,133 468,158 Q 403,183 378,248 Q 353,183 286,158 Q 353,133 378,68 Z" 
+          fill="#002166" 
+          opacity="0.15" />
+
+    <!-- Star Shape (No black stroke, pure transparent gap around it) -->
+    <path d="M 370,60 Q 395,125 460,150 Q 395,175 370,240 Q 345,175 280,150 Q 345,125 370,60 Z" 
+          fill="url(#blueGrad)" 
+          stroke="none" />
+  </g>
+</svg>
