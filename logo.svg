@@ -15,7 +15,7 @@
         <path d="M 370,60 Q 395,125 460,150 Q 395,175 370,240 Q 345,175 280,150 Q 345,125 370,60 Z" 
               fill="black" 
               stroke="black" 
-              stroke-width="64" 
+              stroke-width="88" 
               stroke-linejoin="round" />
       </g>
     </mask>
@@ -24,25 +24,25 @@
   <!-- Group containing the Calendar (subject to masking) -->
   <g id="calendar-body" mask="url(#calendarMask)">
     <!-- 1. Calendar Card Shadow (Offset by 12px) -->
-    <rect x="112" y="152" width="280" height="280" rx="48" fill="none" stroke="#002166" stroke-width="16" stroke-linejoin="round" opacity="0.15" />
-    <line x1="120" y1="222" x2="384" y2="222" stroke="#002166" stroke-width="14" stroke-linecap="round" opacity="0.15" />
+    <rect x="112" y="152" width="280" height="280" rx="48" fill="none" stroke="#002166" stroke-width="32" stroke-linejoin="round" opacity="0.15" />
+    <line x1="120" y1="222" x2="384" y2="222" stroke="#002166" stroke-width="24" stroke-linecap="round" opacity="0.15" />
     <g fill="#002166" opacity="0.15">
-      <circle cx="192" cy="287" r="14" />
-      <circle cx="252" cy="287" r="14" />
-      <circle cx="312" cy="287" r="14" />
-      <circle cx="222" cy="357" r="14" />
-      <circle cx="282" cy="357" r="14" />
+      <circle cx="182" cy="297" r="20" />
+      <circle cx="252" cy="297" r="20" />
+      <circle cx="322" cy="297" r="20" />
+      <circle cx="217" cy="367" r="20" />
+      <circle cx="287" cy="367" r="20" />
     </g>
 
     <!-- 2. Calendar Card Base (Vibrant tech blue outline, transparent inside) -->
-    <rect x="100" y="140" width="280" height="280" rx="48" fill="none" stroke="#0052FF" stroke-width="16" stroke-linejoin="round" />
-    <line x1="108" y1="210" x2="372" y2="210" stroke="#0052FF" stroke-width="14" stroke-linecap="round" />
+    <rect x="100" y="140" width="280" height="280" rx="48" fill="none" stroke="#0052FF" stroke-width="32" stroke-linejoin="round" />
+    <line x1="108" y1="210" x2="372" y2="210" stroke="#0052FF" stroke-width="24" stroke-linecap="round" />
     <g fill="#0052FF">
-      <circle cx="180" cy="275" r="14" />
-      <circle cx="240" cy="275" r="14" />
-      <circle cx="300" cy="275" r="14" />
-      <circle cx="210" cy="345" r="14" />
-      <circle cx="270" cy="345" r="14" />
+      <circle cx="170" cy="285" r="20" />
+      <circle cx="240" cy="285" r="20" />
+      <circle cx="310" cy="285" r="20" />
+      <circle cx="205" cy="355" r="20" />
+      <circle cx="275" cy="355" r="20" />
     </g>
   </g>
 
