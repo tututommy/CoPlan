@@ -24,6 +24,22 @@
 - **AI 解析任务** — 输入自然语言描述（如 "明天下午 3 点开会 2 小时"），AI 自动解析并创建任务
 - 支持自定义 API Base URL、模型名称和密钥
 
+### 四象限时间管理 (Eisenhower Matrix) / Eisenhower Quadrants
+- **2x2 艾森豪威尔法则网格** — 自动或通过拖拽将任务分配到重要性/紧急性维度
+- **拖拽与属性联动** — 拖拽任务至不同象限可自动修改其优先级、到期时间，实现高效整理
+- **AI 智能分配与分析** — 一键评估所有任务，生成象限分配方案、AI 推荐理由和结构优化建议
+
+### 专注时钟 (Stopwatch & Pomodoro) / Focus Timer
+- **番茄钟与正计时** — 提供标准 25 分钟工作/5 分钟休息自动循环或正向累计计时
+- **任务绑定时间追踪** — 选择特定待办任务进行计时，自动累加和保存专注时长至任务记录
+- **Web Audio 蜂鸣音提醒** — 番茄钟结束时，使用 Web Audio API 合成音频铃声提示
+- **AI 专注教练** — 依据任务特性生成定制化格言、执行拆解步骤和防干扰贴士
+
+### 工作复盘与 AI 摘要 (Summary) / Daily Review & AI Summary
+- **统计看板指标** — 汇总今日已完成任务数、未完成数、累计专注分钟、完成番茄钟个数
+- **AI 智能复盘报告** — 汇总分析今日已完成及未完成任务，智能生成今日工作综述、时间投入诊断、成果亮点与行动建议
+- **导出 Markdown** — 支持一键将生成的复盘报告以 Markdown 格式导出并下载至本地
+
 ### 任务管理 / Task Management
 - **智能列表** — 收件箱、今天、明天、未来 7 天、已完成、垃圾桶
 - **自定义清单** — 创建无限数量的自定义列表，支持颜色标记
@@ -52,9 +68,29 @@
 ## 界面预览 / Screenshots
 
 <p align="center">
-  <img src="screenshot-tasks.png" alt="CoPlan Task View" width="800" />
+  <img src="screenshot_tasks.png" alt="CoPlan Task View" width="800" />
 </p>
 <p align="center"><i>任务视图 / Task View</i></p>
+
+<p align="center">
+  <img src="screenshot_calendar.png" alt="CoPlan Calendar View" width="800" />
+</p>
+<p align="center"><i>日历视图 / Calendar View</i></p>
+
+<p align="center">
+  <img src="screenshot_quadrants.png" alt="CoPlan Eisenhower Quadrants" width="800" />
+</p>
+<p align="center"><i>四象限时间管理 / Eisenhower Quadrants</i></p>
+
+<p align="center">
+  <img src="screenshot_timer.png" alt="CoPlan Focus Timer" width="800" />
+</p>
+<p align="center"><i>专注时钟 / Focus Timer</i></p>
+
+<p align="center">
+  <img src="screenshot_summary.png" alt="CoPlan Daily Summary" width="800" />
+</p>
+<p align="center"><i>工作复盘与 AI 摘要 / Daily Review & AI Summary</i></p>
 
 ---
 
@@ -128,12 +164,12 @@ CoPlan/
 - [x] 中英文国际化
 - [x] 自定义工作时间
 - [x] 任务搜索与拖拽排序
+- [x] 番茄钟专注模式
+- [x] 数据导出/导入（Markdown格式）
+- [x] 打包发布（Windows / macOS / Linux 安装包）
 - [ ] 重复任务规则
 - [ ] 任务标签系统
-- [ ] 番茄钟专注模式
-- [ ] 数据导出/导入（Markdown / iCal）
 - [ ] 系统托盘与快捷键
-- [ ] 打包发布（Windows / macOS / Linux 安装包）
 
 ---
 
@@ -156,8 +192,8 @@ CoPlan/
 ---
 
 <p align="center">
-  Made with ❤️ by <a href="https://github.com/tututommy">tututommy</a>
+  Made by <a href="https://github.com/tututommy">tututommy</a>
 </p>
 <p align="center">
-  由 tututommy 用 ❤️ 制作
+  由 tututommy 制作
 </p>
