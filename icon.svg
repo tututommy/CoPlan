@@ -22,8 +22,8 @@
       <!-- Keep everything visible by default -->
       <rect x="0" y="0" width="512" height="512" fill="white" />
       <!-- Cut out the star shape with an extended offset stroke (painted black) -->
-      <g transform="translate(370, 150) rotate(-15) translate(-370, -150)">
-        <path d="M 370,60 Q 395,125 460,150 Q 395,175 370,240 Q 345,175 280,150 Q 345,125 370,60 Z" 
+      <g transform="translate(385, 150) rotate(-15) translate(-385, -150)">
+        <path d="M 385,50 Q 413,122 485,150 Q 413,178 385,250 Q 357,178 285,150 Q 357,122 385,50 Z" 
               fill="black" 
               stroke="black" 
               stroke-width="88" 
@@ -64,14 +64,14 @@
     </g>
 
     <!-- Rotated AI Star (Placed on top layer, casting shadow and offset by mask) -->
-    <g id="ai-star" transform="translate(370, 150) rotate(-15) translate(-370, -150)">
+    <g id="ai-star" transform="translate(385, 150) rotate(-15) translate(-385, -150)">
       <!-- Star Solid Shadow (shifted by dx=8, dy=8 relative to the star) -->
-      <path d="M 378,68 Q 403,133 468,158 Q 403,183 378,248 Q 353,183 286,158 Q 353,133 378,68 Z" 
+      <path d="M 393,58 Q 421,130 493,158 Q 421,186 393,258 Q 365,186 293,158 Q 365,130 393,58 Z" 
             fill="#002166" 
             opacity="0.15" />
 
       <!-- Star Shape (No black stroke, pure transparent gap around it) -->
-      <path d="M 370,60 Q 395,125 460,150 Q 395,175 370,240 Q 345,175 280,150 Q 345,125 370,60 Z" 
+      <path d="M 385,50 Q 413,122 485,150 Q 413,178 385,250 Q 357,178 285,150 Q 357,122 385,50 Z" 
             fill="url(#blueGrad)" 
             stroke="none" />
     </g>
