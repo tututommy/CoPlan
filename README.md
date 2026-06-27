@@ -19,7 +19,7 @@
 ## 核心功能 / Core Features
 
 ### AI 智能排期 / AI Smart Scheduling
-连接任意 OpenAI 兼容 API 或 Google Gemini，一键自动为任务安排最佳时间：
+连接任意 OpenAI 兼容 API，一键自动为任务安排最佳时间：
 - **AI 自动排期** — 根据任务优先级、预估时长、工作时间和截止日期，智能安排日程
 - **AI 解析任务** — 输入自然语言描述（如 "明天下午 3 点开会 2 小时"），AI 自动解析并创建任务
 - 支持自定义 API Base URL、模型名称和密钥
@@ -94,6 +94,28 @@
 
 ---
 
+## 图标与品牌 / Icons & Branding
+
+CoPlan 使用仓库内的矢量图标贯穿应用与安装包：
+
+- **`logo.svg`** — 应用界面左上角 Logo、任务列表等 UI 元素。
+- **`icon.svg`** — 应用窗口图标、任务栏图标以及 Windows / macOS / Linux 安装包图标源文件。
+- 运行 `npm run build:icons` 会从 `icon.svg` 自动生成：
+  - `build/icons/icon.png`（1024×1024，Linux / macOS 通用）
+  - `build/icons/icon.ico`（Windows 窗口与安装包）
+  - `build/icons/icon.icns`（macOS `.app` 图标）
+
+CoPlan uses the vector icons in the repo across the app and installers:
+
+- **`logo.svg`** — Top-left UI logo and other in-app branding.
+- **`icon.svg`** — Window icon, taskbar icon, and the source for all platform installer icons.
+- Run `npm run build:icons` to generate from `icon.svg`:
+  - `build/icons/icon.png` (1024×1024, for Linux / macOS)
+  - `build/icons/icon.ico` (for Windows window and installer)
+  - `build/icons/icon.icns` (for macOS `.app` icon)
+
+---
+
 ## 快速开始 / Quick Start
 
 ### 直接下载安装（推荐） / Direct Download (Recommended)
@@ -118,20 +140,35 @@ cd CoPlan
 # 安装依赖
 npm install
 
+# 生成图标资源（从 icon.svg 生成 ICO / ICNS / PNG）
+npm run build:icons
+
 # 启动应用
 npm start
 ```
+
+#### 打包 / Build
+
+```bash
+npm run build:win    # Windows NSIS 安装包
+npm run build:mac    # macOS DMG（需在 macOS 上运行）
+npm run build:linux  # Linux AppImage + deb（需在 Linux 上运行）
+```
+
+> 全平台安装包推荐通过 GitHub Actions 自动构建：推送 `v*` 标签即可触发 `.github/workflows/release.yml`。
+>
+> For cross-platform releases, use the GitHub Actions workflow by pushing a `v*` tag.
 
 ### 配置 AI（可选）/ AI Configuration (Optional)
 
 1. 点击左下角 **设置**（齿轮图标）
 2. 填入你的 API 信息：
-   - **API 接口地址** — 支持 OpenAI 兼容端点（如 `https://api.openai.com/v1/chat/completions`）或 Google Gemini 端点
+   - **API 接口地址** — 支持 OpenAI 兼容端点（如 `https://api.openai.com/v1/chat/completions`）
    - **模型名称** — 如 `gpt-4o`、`gpt-3.5-turbo`（仅 OpenAI 兼容端点需要）
    - **API 密钥** — 你的个人 API Key
 3. 保存后即可使用 AI 自动排期和解析功能
 
-> **推荐模型**：任何支持对话补全的模型均可，如 GPT-4o、Claude、Gemini、DeepSeek、Qwen 等。
+> **推荐模型**：任何支持对话补全的模型均可，如 GPT-4o、Claude、DeepSeek、Qwen 等。
 
 ---
 
@@ -139,13 +176,18 @@ npm start
 
 ```
 CoPlan/
-├── main.js           # Electron 主进程 — 本地存储、AI API 桥接
-├── preload.js        # 安全 IPC 预加载脚本
-├── renderer.js       # 渲染进程 — 完整 UI 逻辑与状态管理
-├── index.html        # 应用界面骨架
-├── styles.css        # Fluent Design 风格样式
-├── package.json      # 项目配置
-└── LICENSE           # MIT 许可证
+├── main.js                  # Electron 主进程 — 本地存储、AI API 桥接
+├── preload.js               # 安全 IPC 预加载脚本
+├── renderer.js              # 渲染进程 — 完整 UI 逻辑与状态管理
+├── index.html               # 应用界面骨架
+├── styles.css               # Fluent Design 风格样式
+├── icon.svg                 # 应用/安装包图标源文件
+├── logo.svg                 # 应用界面 Logo 源文件
+├── scripts/
+│   └── generate-icons.js    # 从 icon.svg 生成平台图标
+├── build/icons/             # 生成的 ICO / ICNS / PNG 图标资源
+├── package.json             # 项目配置
+└── LICENSE                  # MIT 许可证
 ```
 
 ---
@@ -157,6 +199,7 @@ CoPlan/
 | **Electron** | 跨平台桌面应用框架 |
 | **原生 HTML/CSS/JS** | 无框架依赖，轻量直接 |
 | **Fluent Design** | 微软设计语言，Acrylic 玻璃质感 |
+| **sharp / png-to-ico / png2icons** | SVG 图标转 Windows ICO / macOS ICNS / PNG<br>SVG icon conversion to ICO / ICNS / PNG |
 | **本地 JSON 存储** | 无需数据库，零配置 |
 
 ---
@@ -166,7 +209,7 @@ CoPlan/
 - [x] 任务 CRUD 管理
 - [x] 自定义清单与颜色标记
 - [x] 日历日/周/月/日程视图
-- [x] AI 自动排期（OpenAI 兼容 + Gemini）
+- [x] AI 自动排期（OpenAI 兼容）
 - [x] AI 自然语言解析任务
 - [x] 深色/浅色/跟随系统主题
 - [x] 中英文国际化
@@ -200,8 +243,5 @@ CoPlan/
 ---
 
 <p align="center">
-  Made by <a href="https://github.com/tututommy">tututommy</a>
-</p>
-<p align="center">
-  由 tututommy 制作
+  by <a href="https://github.com/tututommy">tututommy</a>
 </p>
